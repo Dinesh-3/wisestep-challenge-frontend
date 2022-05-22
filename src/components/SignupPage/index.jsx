@@ -61,13 +61,19 @@ const Signup = () => {
 		notify({ message: response.message });
 	};
 
+	const handleLoading = async (method, ...params) => {
+		setLoading(true);
+		await method(...params);
+		setLoading(false);
+	};
+
 	const isFormValid = () => {
 		const entries = Object.entries(form);
 
 		for (const [key, value] of entries) {
-			console.log({ key, value });
 			if (!REGEX_VALIDATION[key].pattern.test(value)) {
 				alert(REGEX_VALIDATION[key].message);
+				setLoading(false);
 				return false;
 			}
 		}
@@ -121,7 +127,11 @@ const Signup = () => {
 				<label htmlFor='email'>Email address</label>
 			</div>
 
-			<button className='w-100 btn btn-lg btn-primary' onClick={signup} disabled={loading}>
+			<button
+				className='w-100 btn btn-lg btn-primary'
+				onClick={(event) => handleLoading(signup, event)}
+				disabled={loading}
+			>
 				Sign Up
 			</button>
 			<div>

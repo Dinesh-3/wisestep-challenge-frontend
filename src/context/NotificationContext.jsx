@@ -14,7 +14,7 @@ const NotificationProvider = (props) => {
 	const removeItem = () => {
 		setTimeout(() => {
 			setItems((prev) => [...prev].slice(1));
-		}, 2000);
+		}, 3000);
 	};
 
 	return (

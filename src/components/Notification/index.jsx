@@ -20,15 +20,11 @@ const Notification = ({ notify }) => {
 					key={item.id}
 					style={{ top: `${index * 5}rem` }}
 				>
-					<div>
-						{item.message} {index}
-					</div>
+					<div>{item.message}</div>
 				</div>
 			))}
 		</div>
 	);
 };
-
-export const notify = (item) => {};
 
 export default Notification;

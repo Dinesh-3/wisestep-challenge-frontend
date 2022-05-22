@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import { useNotification } from "../../context/NotificationContext";
 import request from "../../services/request";
 import REGEX_PATTERN from "../../util/regexPattern";
@@ -33,8 +34,14 @@ const REGEX_VALIDATION = {
 	},
 };
 
+const RESEND_INTERVAL = 2;
+
 const Login = () => {
 	const { notify } = useNotification();
+	const { useSession, useUser } = useAuth();
+	const [sessionToken, setSessionToken] = useSession();
+	const [user, setUser] = useUser();
+
 	const navigate = useNavigate();
 
 	const [form, setForm] = useState(initForm);
@@ -48,7 +55,7 @@ const Login = () => {
 		let timerId;
 
 		if (otpState.runTimer) {
-			setOtpState((prev) => ({ ...prev, timerCount: 60 * 5 }));
+			setOtpState((prev) => ({ ...prev, timerCount: 60 * RESEND_INTERVAL }));
 			timerId = setInterval(() => {
 				setOtpState((prev) => ({ ...prev, timerCount: prev.timerCount - 1 }));
 			}, 1000);
@@ -87,7 +94,7 @@ const Login = () => {
 		setLoading(false);
 		if (!response.status) return notify({ message: response.message });
 
-		notify({ message: "Otp sent Please check email Inbox and Spam too" });
+		notify({ status: true, message: "Otp sent Please check email Inbox and Spam too" });
 		setOtpState(() => ({ runTimer: true }));
 	};
 
@@ -96,9 +103,14 @@ const Login = () => {
 		setLoading(true);
 		if (!isValidForm()) return;
 
-		const response = await request({ path: "/api/login", body: form });
+		const response = await request({ path: "/user/login", body: form });
 		setLoading(false);
-		if (!response.status) notify({ message: response.message });
+		if (!response.status) {
+			notify({ message: response.message });
+			return;
+		}
+		setUser(response.data.user);
+		setSessionToken(response.data.session);
 
 		notify({ status: true, message: response.message });
 		navigate("/");
@@ -108,7 +120,6 @@ const Login = () => {
 		const entries = Object.entries(form);
 
 		for (const [key, value] of entries) {
-			console.log({ key, value });
 			if (!REGEX_VALIDATION[key].pattern.test(value)) {
 				notify({ message: REGEX_VALIDATION[key].message });
 				setLoading(false);
@@ -144,7 +155,7 @@ const Login = () => {
 				<button
 					className='w-25 btn btn-secondary'
 					onClick={sendOtp}
-					disabled={otpState.runTimer}
+					disabled={otpState.runTimer || loading}
 				>
 					{otpState.runTimer ? `${minutes}:${seconds}` : "Send Otp"}
 				</button>
