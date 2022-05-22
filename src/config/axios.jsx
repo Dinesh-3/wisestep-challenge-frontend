@@ -1,7 +1,10 @@
 import axios from "axios";
 
 export const initConfig = () => {
-	axios.defaults.baseURL = "http://localhost:8080/api/v1";
+	const host = (process.env.NODE_ENV = "development"
+		? "http://localhost:8080"
+		: "https://auth-two-backend.herokuapp.com");
+	axios.defaults.baseURL = `${host}/api/v1`;
 
 	axios.defaults.headers.post["Content-Type"] = "application/json";
 
